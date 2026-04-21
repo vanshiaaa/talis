@@ -12,8 +12,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 
-//@Aspect
-//@Component
+@Aspect
+@Component
 public class OperationLogAspect {
 
     @Autowired

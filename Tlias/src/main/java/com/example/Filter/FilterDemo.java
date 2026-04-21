@@ -7,7 +7,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
 
-//@WebFilter(urlPatterns = "/*")
+@WebFilter(urlPatterns = "/*")
 @Slf4j
 public class FilterDemo implements Filter {
     @Override
