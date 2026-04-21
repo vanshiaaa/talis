@@ -1,0 +1,102 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.mapper.ClazzMapper">
+    <insert id="addclazz">
+        insert into clazz
+        <trim prefix="(" suffix=")" suffixOverrides=",">
+            name,
+            room,
+            begin_date,
+            end_date,
+            <if test="masterId != null">master_id,</if>
+            subject,
+        </trim>
+        <trim prefix="values (" suffix=")" suffixOverrides=",">
+            #{name},
+            #{room},
+            #{beginDate},
+            #{endDate},
+            <if test="masterId != null">#{masterId},</if>
+            #{subject},
+        </trim>
+    </insert>
+    <update id="updateClazz">
+        update clazz
+        <set>
+            <if test="name != null and name != ''">name = #{name},</if>
+            <if test="room != null and room != ''">room = #{room},</if>
+            <if test="beginDate != null">begin_date = #{beginDate},</if>
+            <if test="endDate != null">end_date = #{endDate},</if>
+            <if test="masterId != null">master_id = #{masterId},</if>
+            <if test="subject != null and subject != ''">subject = #{subject},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+    <delete id="deleteByIds">
+        delete from clazz where id in
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+
+    <select id="list" resultType="com.example.pojo.Clazz">
+        SELECT
+        c.id,
+        c.name,
+        c.room,
+        c.begin_date,
+        c.end_date,
+        c.master_id,
+        e.name AS masterName,
+        (CASE
+        WHEN CURDATE() > c.end_date THEN '已结课'
+        WHEN CURDATE() &lt; c.begin_date THEN '未开班'
+        ELSE '在读中'
+        END) AS status,
+        c.create_time,
+        c.update_time
+        FROM clazz c
+        LEFT JOIN emp e ON c.master_id = e.id
+
+        <where>
+            <!-- 1. 模糊查询班级名称 -->
+            <if test=" name != null and name != ''">
+                AND c.name LIKE CONCAT('%',#{name},'%')
+            </if>
+
+            <!-- 2. 结课时间 >= 指定的开始时间 -->
+            <if test="begin != null">
+                AND c.end_date >= #{begin}
+            </if>
+
+            <!-- 3. 结课时间 <= 指定的结束时间 -->
+            <if test="end != null">
+                AND c.end_date &lt;= #{end}
+            </if>
+        </where>
+
+    </select>
+    <select id="countStudentByClazz" resultType="java.util.Map">
+        SELECT
+            COALESCE(c.name,'其他') clazzList,COUNT(*) dataList
+        FROM student s LEFT JOIN clazz c ON s.clazz_id=c.id
+        GROUP BY s.clazz_id,c.name ORDER BY dataList
+    </select>
+    <select id="countByDegree" resultType="java.util.Map">
+        select
+            (case degree when 1 then '初中'
+                         when 2 then '高中'
+                         when 3 then '大专'
+                         when 4 then '本科'
+                         when 5 then '硕士'
+                         when 6 then '博士' else '其他' end) name,
+            count(*) value from student group by degree;
+    </select>
+    <!--    <select id="findById" resultType="com.example.pojo.Clazz">-->
+<!--        SELECT clazz.-->
+<!--    </select>-->
+</mapper>
